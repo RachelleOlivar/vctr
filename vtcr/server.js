@@ -104,12 +104,10 @@ app.post("/message", async (req, res) => {
       to: "rachelle.olivar01@gmail.com",
       subject: "New Anonymous Message Received",
       text: `
-<b>Anonymous Message</b>
+<span style="font-weight:bold;">Message:</span> <i>${message}</i>
 
-<b>Message:</b> ${message}
-
-<b>Visitor ID:</b> ${visitorId}
-<b>Time:</b> ${time}
+<span style="font-weight:bold;">Visitor ID:</span> <i>${visitorId}</i>
+<span style="font-weight:bold;">Time:</span> <i>${time}</i>
       `
     });
 
