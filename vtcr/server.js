@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000;
    (USE ENV VARIABLES IN PRODUCTION)
 ========================= */
 const TELEGRAM_TOKEN = "AAGzyVXdxov0nQqi8WV7YG7v87_s007qV5Y";
-const TELEGRAM_CHAT_ID = "1332855204";
+const TELEGRAM_CHAT_ID = "8685244748";
 
 /* =========================
    MIDDLEWARE
