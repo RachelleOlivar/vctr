@@ -55,67 +55,33 @@ async function sendTelegram(text) {
    📡 VISITOR TRACKING (SILENT)
 ========================= */
 app.get("/visit", async (req, res) => {
-  let visitorId = req.cookies.visitorId;
-
-  // NEW VISITOR
-  if (!visitorId) {
-    visitorCounter++;
-    visitorId = `VTCR-${visitorCounter.toString().padStart(4, "0")}`;
-
-    visitors[visitorId] = {
-      visits: 1,
-      messages: 0
-    };
-
-  } else {
-    if (!visitors[visitorId]) {
-      visitors[visitorId] = { visits: 0, messages: 0 };
-    }
-
-    visitors[visitorId].visits++;
-  }
-
-  res.cookie("visitorId", visitorId, {
-    maxAge: 1000 * 60 * 60 * 24 * 365,
-    httpOnly: true
-  });
+  totalVisits++;
 
   const time = new Date().toLocaleString("en-PH", {
     timeZone: "Asia/Manila",
     hour12: true
   });
 
-  await sendTelegram(
-`🚨 VISIT
+  const ip =
+    req.headers["x-forwarded-for"]?.split(",")[0] ||
+    req.socket.remoteAddress;
 
-Visitor ID: ${visitorId}
-Visit Count: ${visitors[visitorId].visits}
-Time: ${time}`
+  await sendTelegram(
+`🚨 VISIT LOG
+
+Total Visits: ${totalVisits}
+Time: ${time}
+IP: ${ip}`
   );
 
-  res.json({
-    visitorId,
-    visitCount: visitors[visitorId].visits
-  });
+  res.json({ success: true });
 });
+
 /* =========================
    💬 MESSAGE SYSTEM
 ========================= */
 app.post("/message", async (req, res) => {
   try {
-    let visitorId = req.cookies.visitorId;
-
-    // fallback safety
-    if (!visitorId) {
-      visitorCounter++;
-      visitorId = `VTCR-${visitorCounter.toString().padStart(4, "0")}`;
-
-      res.cookie("visitorId", visitorId, {
-        maxAge: 1000 * 60 * 60 * 24 * 365,
-        httpOnly: true
-      });
-    }
-
     const message = req.body.message;
 
     if (!message || !message.trim()) {
@@ -127,21 +93,34 @@ app.post("/message", async (req, res) => {
       hour12: true
     });
 
-    messages.push({ visitorId, message, time });
+    messages.push({ message, time });
 
-    await sendTelegram(
-`💬 NEW MESSAGE
+    if (!messageCount["global"]) messageCount["global"] = 1;
+    else messageCount["global"]++;
 
-Visitor ID: ${visitorId}
+    const result = await sendTelegram(
+`NEW MESSAGE
+
 Message: ${message}
-Time: ${time}`
+Time: ${time}
+Total Messages: ${messageCount["global"]}`
     );
 
-    res.json({ success: true, visitorId });
+    console.log("Telegram result:", result);
+
+    if (!result || !result.ok) {
+      return res.json({
+        success: false,
+        error: "Telegram failed",
+        details: result
+      });
+    }
+
+    res.json({ success: true });
 
   } catch (err) {
-    console.error(err);
-    res.json({ success: false });
+    console.error("MESSAGE ERROR:", err);
+    res.json({ success: false, error: err.message });
   }
 });
 
@@ -163,4 +142,3 @@ app.get("/test", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
-
