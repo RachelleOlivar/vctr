@@ -30,7 +30,9 @@ let totalVisits = 0;
 ========================= */
 async function sendTelegram(text) {
   try {
-    const res = await fetch(`https://api.telegram.org/bot${AAGzyVXdxov0nQqi8WV7YG7v87_s007qV5Y}/sendMessage`, {
+    const url = `https://api.telegram.org/bot${AAGzyVXdxov0nQqi8WV7YG7v87_s007qV5Y}/sendMessage`;
+
+    const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -41,12 +43,12 @@ async function sendTelegram(text) {
 
     const data = await res.json();
 
-    console.log("Telegram API response:", data);
+    console.log("🔵 TELEGRAM FULL RESPONSE:", JSON.stringify(data, null, 2));
 
     return data;
 
   } catch (err) {
-    console.error("Telegram fetch error:", err);
+    console.error("🔴 TELEGRAM ERROR:", err);
     return null;
   }
 }
