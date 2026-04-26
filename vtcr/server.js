@@ -99,24 +99,20 @@ app.post("/message", async (req, res) => {
 
     console.log("New message:", message);
 
-    await transporter.sendMail({
-      from: '"Visitor Message System" <rachelle.olivar01@gmail.com>',
-      to: "rachelle.olivar01@gmail.com",
-      subject: "New Anonymous Message Received",
-      text: `
-<span style="font-weight:bold;">Message:</span> <i>${message}</i>
+await transporter.sendMail({
+  from: '"Visitor Message System" <rachelle.olivar01@gmail.com>',
+  to: "rachelle.olivar01@gmail.com",
+  subject: "New Anonymous Message Received",
 
-<span style="font-weight:bold;">Visitor ID:</span> <i>${visitorId}</i>
-<span style="font-weight:bold;">Time:</span> <i>${time}</i>
-      `
-    });
+  html: `
+    <h3>Anonymous Message</h3>
 
-    res.json({ success: true });
+    <p><strong>Message:</strong> <em>${message}</em></p>
 
-  } catch (error) {
-    console.error("MESSAGE EMAIL ERROR:", error);
-    res.status(500).json({ success: false, error: error.message });
-  }
+    <p><strong>Visitor ID:</strong> ${visitorId}</p>
+
+    <p><strong>Time:</strong> ${time}</p>
+  `
 });
 
 /* =========================
