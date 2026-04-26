@@ -43,6 +43,11 @@ async function sendTelegram(text) {
   console.log("Telegram API response:", data);
 
   return data;
+   
+} catch (err) {
+    console.error("Telegram fetch error:", err);
+    return null;
+  }
 }
 
 /* =========================
