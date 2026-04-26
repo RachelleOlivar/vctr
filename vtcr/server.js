@@ -6,12 +6,16 @@ const crypto = require("crypto");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// middleware (VERY IMPORTANT)
+/* =========================
+   MIDDLEWARE
+========================= */
 app.use(express.static("public"));
 app.use(express.json());
 app.use(cookieParser());
 
-// email setup
+/* =========================
+   EMAIL SETUP
+========================= */
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -20,8 +24,12 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// memory storage (temporary dashboard use)
+/* =========================
+   MEMORY STORAGE
+========================= */
 let messages = [];
+let messageCount = {};   // per visitor message counter
+let visitorCounter = 0;  // sequential visitor ID
 
 /* =========================
    📡 VISITOR TRACKING
@@ -31,14 +39,17 @@ app.get("/visit", async (req, res) => {
   let visitCount = req.cookies.visitCount || 0;
   let isNewVisitor = false;
 
+  // NEW VISITOR
   if (!visitorId) {
-    visitorId = crypto.randomUUID();
+    visitorCounter++;
+    visitorId = `VTCR-${visitorCounter.toString().padStart(4, "0")}`;
     visitCount = 1;
     isNewVisitor = true;
   } else {
     visitCount = parseInt(visitCount) + 1;
   }
 
+  // save cookies
   res.cookie("visitorId", visitorId, {
     maxAge: 1000 * 60 * 60 * 24 * 365,
     httpOnly: true
@@ -50,31 +61,31 @@ app.get("/visit", async (req, res) => {
   });
 
   const time = new Date().toLocaleString();
-  const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+  const ip =
+    req.headers["x-forwarded-for"]?.split(",")[0] ||
+    req.socket.remoteAddress;
 
   try {
     await transporter.sendMail({
       from: '"Visitor Tracker" <rachelle.olivar01@gmail.com>',
       to: "rachelle.olivar01@gmail.com",
-      subject: isNewVisitor
-        ? "New Visitor Detected"
-        : `Someone Visited Again!`,
+      subject: isNewVisitor ? "New Visitor Detected" : "Returning Visitor",
+
       text: `
 Visitor Report
 
 Type: ${isNewVisitor ? "NEW" : "RETURNING"}
-Visit Count: ${visitCount}
-
 Visitor ID: ${visitorId}
-IP: ${ip}
+Visit Count: ${visitCount}
 Time: ${time}
       `
     });
 
     res.json({
       success: true,
-      newVisitor: isNewVisitor,
-      visitCount
+      visitorId,
+      visitCount,
+      newVisitor: isNewVisitor
     });
 
   } catch (error) {
@@ -88,7 +99,7 @@ Time: ${time}
 ========================= */
 app.post("/message", async (req, res) => {
   try {
-    const visitorId = req.cookies.visitorId || "unknown";
+    const visitorId = req.cookies.visitorId || "UNKNOWN";
     const message = req.body.message;
 
     if (!message || message.trim() === "") {
@@ -97,7 +108,18 @@ app.post("/message", async (req, res) => {
 
     const time = new Date().toLocaleString();
 
-    console.log("New message:", message);
+    // message count per visitor
+    if (!messageCount[visitorId]) {
+      messageCount[visitorId] = 1;
+    } else {
+      messageCount[visitorId]++;
+    }
+
+    messages.push({
+      visitorId,
+      message,
+      time
+    });
 
     await transporter.sendMail({
       from: '"Visitor Message System" <rachelle.olivar01@gmail.com>',
@@ -106,22 +128,28 @@ app.post("/message", async (req, res) => {
 
       html: `
         <h3>Anonymous Message</h3>
+
         <p><strong>Message:</strong> <em>${message}</em></p>
+
         <p><strong>Visitor ID:</strong> ${visitorId}</p>
         <p><strong>Time:</strong> ${time}</p>
+        <p><strong>Total Messages From This Visitor:</strong> ${messageCount[visitorId]}</p>
       `
     });
 
-    res.json({ success: true });
+    res.json({
+      success: true,
+      messageCount: messageCount[visitorId]
+    });
 
   } catch (error) {
     console.error("MESSAGE EMAIL ERROR:", error);
     res.status(500).json({ success: false, error: error.message });
   }
-}); // ✅ THIS WAS MISSING / MISPLACED
+});
 
 /* =========================
-   📊 VIEW MESSAGES (OPTIONAL)
+   📊 VIEW MESSAGES
 ========================= */
 app.get("/messages", (req, res) => {
   res.json(messages.slice().reverse());
