@@ -1,46 +1,27 @@
-document.addEventListener("DOMContentLoaded", () => {
-  trackVisit();
+const BASE_URL = "https://vctr.onrender.com";
+
+/* =========================
+   SILENT VISITOR TRACKING
+========================= */
+window.addEventListener("load", () => {
+  fetch(`${BASE_URL}/visit`)
+    .then(() => console.log("Visit logged"))
+    .catch(() => console.log("Visit failed"));
 });
 
-// 📡 TRACK VISIT
-function trackVisit() {
-  fetch("/visit")
-    .then(res => res.json())
-    .then(data => {
-      const status = document.getElementById("status");
-
-      if (!status) return;
-
-      if (data.newVisitor) {
-        status.innerText = "🆕 New visitor detected (first time device)";
-      } else {
-        status.innerText = "🔁 Returning visitor detected";
-      }
-    })
-    .catch(() => {
-      const status = document.getElementById("status");
-      if (status) {
-        status.innerText = "⚠️ Error connecting to server.";
-      }
-    });
-}
-
-// 💬 SEND ANONYMOUS MESSAGE
+/* =========================
+   SEND MESSAGE
+========================= */
 function sendMessage() {
-  const messageBox = document.getElementById("message");
-  const statusBox = document.getElementById("msgStatus");
+  const message = document.getElementById("message").value;
+  const status = document.getElementById("msgStatus");
 
-  if (!messageBox || !statusBox) return;
-
-  const message = messageBox.value.trim();
-
-  // validation
-  if (!message) {
-    statusBox.innerText = "⚠️ Please type a message first.";
+  if (!message.trim()) {
+    status.innerText = "Please type a message first.";
     return;
   }
 
-  fetch("/message", {
+  fetch(`${BASE_URL}/message`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -48,15 +29,11 @@ function sendMessage() {
     body: JSON.stringify({ message })
   })
     .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        statusBox.innerText = "✅ Message sent anonymously!";
-        messageBox.value = "";
-      } else {
-        statusBox.innerText = "❌ Failed to send message.";
-      }
+    .then(() => {
+      status.innerText = "Message sent anonymously ✅";
+      document.getElementById("message").value = "";
     })
     .catch(() => {
-      statusBox.innerText = "⚠️ Server error. Try again later.";
+      status.innerText = "Failed to send message.";
     });
 }
