@@ -1,10 +1,15 @@
 const express = require("express");
-const nodemailer = require("nodemailer");
 const cookieParser = require("cookie-parser");
-const crypto = require("crypto");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+/* =========================
+   TELEGRAM CONFIG
+   (USE ENV VARIABLES IN PRODUCTION)
+========================= */
+const TELEGRAM_TOKEN = "8685244748:AAHpnWQgywHbTF44LSmXDEOXjaGU9lm5tCM;
+const TELEGRAM_CHAT_ID = "@vtcrr_bot";
 
 /* =========================
    MIDDLEWARE
@@ -14,156 +19,100 @@ app.use(express.json());
 app.use(cookieParser());
 
 /* =========================
-   EMAIL SETUP
-========================= */
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: "rachelle.olivar01@gmail.com",
-    pass: "pgxz weql fbud ebje"
-  }
-});
-
-/* =========================
    MEMORY STORAGE
 ========================= */
 let messages = [];
-let messageCount = {};   // per visitor message counter
-let visitorCounter = 0;  // sequential visitor ID
+let messageCount = {};
+let totalVisits = 0;
 
 /* =========================
-   📡 VISITOR TRACKING
+   TELEGRAM FUNCTION
+========================= */
+async function sendTelegram(text) {
+  try {
+    await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHAT_ID,
+        text
+      })
+    });
+  } catch (err) {
+    console.error("Telegram error:", err);
+  }
+}
+
+/* =========================
+   📡 VISITOR TRACKING (SILENT)
 ========================= */
 app.get("/visit", async (req, res) => {
-  let visitorId = req.cookies.visitorId;
-  let visitCount = req.cookies.visitCount || 0;
-  let isNewVisitor = false;
+  totalVisits++;
 
-  // NEW VISITOR
-  if (!visitorId) {
-    visitorCounter++;
-    visitorId = `VTCR-${visitorCounter.toString().padStart(4, "0")}`;
-    visitCount = 1;
-    isNewVisitor = true;
-  } else {
-    visitCount = parseInt(visitCount) + 1;
-  }
-
-  // save cookies
-  res.cookie("visitorId", visitorId, {
-    maxAge: 1000 * 60 * 60 * 24 * 365,
-    httpOnly: true
+  const time = new Date().toLocaleString("en-PH", {
+    timeZone: "Asia/Manila",
+    hour12: true
   });
 
-  res.cookie("visitCount", visitCount, {
-    maxAge: 1000 * 60 * 60 * 24 * 365,
-    httpOnly: true
-  });
-
-const time = new Date().toLocaleString("en-PH", {
-  timeZone: "Asia/Manila",
-  hour12: true
-});
   const ip =
     req.headers["x-forwarded-for"]?.split(",")[0] ||
     req.socket.remoteAddress;
 
-  try {
-    await transporter.sendMail({
-      from: '"Visitor Tracker" <rachelle.olivar01@gmail.com>',
-      to: "rachelle.olivar01@gmail.com",
-      subject: isNewVisitor ? "New Visitor Detected" : "Returning Visitor",
+  await sendTelegram(
+`🚨 VISIT LOG
 
-      text: `
-Visitor Report
-
-Type: ${isNewVisitor ? "NEW" : "RETURNING"}
-Visitor ID: ${visitorId}
-Visit Count: ${visitCount}
+Total Visits: ${totalVisits}
 Time: ${time}
-      `
-    });
+IP: ${ip}`
+  );
 
-    res.json({
-      success: true,
-      visitorId,
-      visitCount,
-      newVisitor: isNewVisitor
-    });
-
-  } catch (error) {
-    console.error("EMAIL ERROR:", error);
-    res.status(500).json({ success: false });
-  }
+  res.json({ success: true });
 });
 
 /* =========================
-   💬 ANONYMOUS MESSAGE
+   💬 MESSAGE SYSTEM
 ========================= */
 app.post("/message", async (req, res) => {
-  try {
-    const visitorId = req.cookies.visitorId || "UNKNOWN";
-    const message = req.body.message;
+  const message = req.body.message;
 
-    if (!message || message.trim() === "") {
-      return res.json({ success: false, error: "Empty message" });
-    }
-
-    const time = new Date().toLocaleString("en-PH", {
-  timeZone: "Asia/Manila",
-  hour12: true
-});
-
-    // message count per visitor
-    if (!messageCount[visitorId]) {
-      messageCount[visitorId] = 1;
-    } else {
-      messageCount[visitorId]++;
-    }
-
-    messages.push({
-      visitorId,
-      message,
-      time
-    });
-
-    await transporter.sendMail({
-      from: '"Visitor Message System" <rachelle.olivar01@gmail.com>',
-      to: "rachelle.olivar01@gmail.com",
-      subject: "New Anonymous Message Received",
-
-      html: `
-        <h3>Anonymous Message</h3>
-
-        <p><strong>Message:</strong> <em>${message}</em></p>
-
-        <p><strong>Visitor ID:</strong> ${visitorId}</p>
-        <p><strong>Time:</strong> ${time}</p>
-        <p><strong>Total Messages From This Visitor:</strong> ${messageCount[visitorId]}</p>
-      `
-    });
-
-    res.json({
-      success: true,
-      messageCount: messageCount[visitorId]
-    });
-
-  } catch (error) {
-    console.error("MESSAGE EMAIL ERROR:", error);
-    res.status(500).json({ success: false, error: error.message });
+  if (!message || !message.trim()) {
+    return res.json({ success: false, error: "Empty message" });
   }
+
+  const time = new Date().toLocaleString("en-PH", {
+    timeZone: "Asia/Manila",
+    hour12: true
+  });
+
+  messages.push({ message, time });
+
+  if (!messageCount["global"]) messageCount["global"] = 1;
+  else messageCount["global"]++;
+
+  await sendTelegram(
+`💬 NEW MESSAGE
+
+Message: ${message}
+Time: ${time}
+Total Messages: ${messageCount["global"]}`
+  );
+
+  res.json({ success: true });
 });
 
 /* =========================
-   📊 VIEW MESSAGES
+   📊 OPTIONAL STATS (PRIVATE)
 ========================= */
-app.get("/messages", (req, res) => {
-  res.json(messages.slice().reverse());
+app.get("/stats", (req, res) => {
+  res.json({
+    totalVisits,
+    totalMessages: messageCount["global"] || 0
+  });
 });
 
 /* =========================
    START SERVER
 ========================= */
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
