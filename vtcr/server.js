@@ -29,18 +29,20 @@ let totalVisits = 0;
    TELEGRAM FUNCTION
 ========================= */
 async function sendTelegram(text) {
-  try {
-    await fetch(`https://api.telegram.org/bot${AAGzyVXdxov0nQqi8WV7YG7v87_s007qV5Y}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: 1332855204,
-        text
-      })
-    });
-  } catch (err) {
-    console.error("Telegram error:", err);
-  }
+  const res = await fetch(`https://api.telegram.org/bot${AAGzyVXdxov0nQqi8WV7YG7v87_s007qV5Y}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: 1332855204,
+      text
+    })
+  });
+
+  const data = await res.json();
+
+  console.log("Telegram API response:", data);
+
+  return data;
 }
 
 /* =========================
@@ -73,31 +75,47 @@ IP: ${ip}`
    💬 MESSAGE SYSTEM
 ========================= */
 app.post("/message", async (req, res) => {
-  const message = req.body.message;
+  try {
+    const message = req.body.message;
 
-  if (!message || !message.trim()) {
-    return res.json({ success: false, error: "Empty message" });
-  }
+    if (!message || !message.trim()) {
+      return res.json({ success: false, error: "Empty message" });
+    }
 
-  const time = new Date().toLocaleString("en-PH", {
-    timeZone: "Asia/Manila",
-    hour12: true
-  });
+    const time = new Date().toLocaleString("en-PH", {
+      timeZone: "Asia/Manila",
+      hour12: true
+    });
 
-  messages.push({ message, time });
+    messages.push({ message, time });
 
-  if (!messageCount["global"]) messageCount["global"] = 1;
-  else messageCount["global"]++;
+    if (!messageCount["global"]) messageCount["global"] = 1;
+    else messageCount["global"]++;
 
-  await sendTelegram(
-`💬 NEW MESSAGE
+    const result = await sendTelegram(
+`NEW MESSAGE
 
 Message: ${message}
 Time: ${time}
 Total Messages: ${messageCount["global"]}`
-  );
+    );
 
-  res.json({ success: true });
+    console.log("Telegram result:", result);
+
+    if (!result || !result.ok) {
+      return res.json({
+        success: false,
+        error: "Telegram failed",
+        details: result
+      });
+    }
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error("MESSAGE ERROR:", err);
+    res.json({ success: false, error: err.message });
+  }
 });
 
 /* =========================
@@ -108,6 +126,11 @@ app.get("/stats", (req, res) => {
     totalVisits,
     totalMessages: messageCount["global"] || 0
   });
+});
+
+app.get("/test", async (req, res) => {
+  const result = await sendTelegram("🔥 TEST MESSAGE");
+  res.json(result);
 });
 
 /* =========================
