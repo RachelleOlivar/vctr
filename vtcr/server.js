@@ -34,7 +34,7 @@ async function sendTelegram(text) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        chat_id: 1332855204,
+        chat_id: 8685244748,
         text
       })
     });
