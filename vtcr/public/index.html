@@ -114,9 +114,9 @@
         const status = document.getElementById("status");
 
         if (data.newVisitor) {
-          status.innerText = "🆕 New visitor detected (first time device)";
+          status.innerText = "New visitor detected (first time device)";
         } else {
-          status.innerText = "🔁 Returning visitor detected";
+          status.innerText = "Returning visitor detected";
         }
       })
       .catch(() => {
