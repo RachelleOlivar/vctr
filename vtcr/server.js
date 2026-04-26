@@ -99,21 +99,26 @@ app.post("/message", async (req, res) => {
 
     console.log("New message:", message);
 
-await transporter.sendMail({
-  from: '"Visitor Message System" <rachelle.olivar01@gmail.com>',
-  to: "rachelle.olivar01@gmail.com",
-  subject: "New Anonymous Message Received",
+    await transporter.sendMail({
+      from: '"Visitor Message System" <rachelle.olivar01@gmail.com>',
+      to: "rachelle.olivar01@gmail.com",
+      subject: "New Anonymous Message Received",
 
-  html: `
-    <h3>Anonymous Message</h3>
+      html: `
+        <h3>Anonymous Message</h3>
+        <p><strong>Message:</strong> <em>${message}</em></p>
+        <p><strong>Visitor ID:</strong> ${visitorId}</p>
+        <p><strong>Time:</strong> ${time}</p>
+      `
+    });
 
-    <p><strong>Message:</strong> <em>${message}</em></p>
+    res.json({ success: true });
 
-    <p><strong>Visitor ID:</strong> ${visitorId}</p>
-
-    <p><strong>Time:</strong> ${time}</p>
-  `
-});
+  } catch (error) {
+    console.error("MESSAGE EMAIL ERROR:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+}); // ✅ THIS WAS MISSING / MISPLACED
 
 /* =========================
    📊 VIEW MESSAGES (OPTIONAL)
