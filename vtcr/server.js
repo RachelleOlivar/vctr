@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3000;
    TELEGRAM CONFIG
    (USE ENV VARIABLES IN PRODUCTION)
 ========================= */
-const TELEGRAM_TOKEN = "8685244748:AAHpnWQgywHbTF44LSmXDEOXjaGU9lm5tCM;
+const TELEGRAM_TOKEN = "8685244748:AAHpnWQgywHbTF44LSmXDEOXjaGU9lm5tCM";
 const TELEGRAM_CHAT_ID = "@vtcrr_bot";
 
 /* =========================
