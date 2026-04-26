@@ -8,8 +8,8 @@ const PORT = process.env.PORT || 3000;
    TELEGRAM CONFIG
    (USE ENV VARIABLES IN PRODUCTION)
 ========================= */
-const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
-const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+const TELEGRAM_TOKEN = "8685244748:AAGzyVXdxov0nQqi8WV7YG7v87_s007qV5Y";
+const TELEGRAM_CHAT_ID = "-1003901069758";
 
 /* =========================
    MIDDLEWARE
