@@ -60,7 +60,10 @@ app.get("/visit", async (req, res) => {
     httpOnly: true
   });
 
-  const time = new Date().toLocaleString();
+const time = new Date().toLocaleString("en-PH", {
+  timeZone: "Asia/Manila",
+  hour12: true
+});
   const ip =
     req.headers["x-forwarded-for"]?.split(",")[0] ||
     req.socket.remoteAddress;
@@ -106,7 +109,10 @@ app.post("/message", async (req, res) => {
       return res.json({ success: false, error: "Empty message" });
     }
 
-    const time = new Date().toLocaleString();
+    const time = new Date().toLocaleString("en-PH", {
+  timeZone: "Asia/Manila",
+  hour12: true
+});
 
     // message count per visitor
     if (!messageCount[visitorId]) {
