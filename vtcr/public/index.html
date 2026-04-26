@@ -146,35 +146,44 @@
   </div>
 
   <script>
-    function sendMessage() {
-      const message = document.getElementById("message").value;
+  const BASE_URL = "https://YOUR-RENDER-URL.onrender.com";
 
-      if (!message.trim()) {
-        document.getElementById("msgStatus").innerText =
-          "Please type a message first.";
-        return;
-      }
+  // 🔥 SILENT VISITOR TRACKING
+  window.addEventListener("load", () => {
+    fetch(`${BASE_URL}/visit`)
+      .then(() => console.log("Visit logged"))
+      .catch(() => console.log("Visit failed"));
+  });
 
-      fetch("/message", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ message })
-      })
-      .then(res => res.json())
-      .then(() => {
-        document.getElementById("msgStatus").innerText =
-          "Message sent anonymously ✅";
+  function sendMessage() {
+    const message = document.getElementById("message").value;
 
-        document.getElementById("message").value = "";
-      })
-      .catch(() => {
-        document.getElementById("msgStatus").innerText =
-          "Failed to send message.";
-      });
+    if (!message.trim()) {
+      document.getElementById("msgStatus").innerText =
+        "Please type a message first.";
+      return;
     }
-  </script>
+
+    fetch(`${BASE_URL}/message`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ message })
+    })
+    .then(res => res.json())
+    .then(() => {
+      document.getElementById("msgStatus").innerText =
+        "Message sent anonymously ✅";
+
+      document.getElementById("message").value = "";
+    })
+    .catch(() => {
+      document.getElementById("msgStatus").innerText =
+        "Failed to send message.";
+    });
+  }
+</script>
 
 </body>
 </html>
