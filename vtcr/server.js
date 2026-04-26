@@ -43,12 +43,13 @@ async function sendTelegram(text) {
 
     const data = await res.json();
 
-    console.log("🔵 TELEGRAM FULL RESPONSE:", JSON.stringify(data, null, 2));
+    console.log("🔵 TELEGRAM RESPONSE STATUS:", res.status);
+    console.log("🔵 TELEGRAM RESPONSE BODY:", data);
 
     return data;
 
   } catch (err) {
-    console.error("🔴 TELEGRAM ERROR:", err);
+    console.error("🔴 TELEGRAM FETCH ERROR:", err);
     return null;
   }
 }
