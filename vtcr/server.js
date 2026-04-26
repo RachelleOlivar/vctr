@@ -29,22 +29,23 @@ let totalVisits = 0;
    TELEGRAM FUNCTION
 ========================= */
 async function sendTelegram(text) {
-  const res = await fetch(`https://api.telegram.org/bot${AAGzyVXdxov0nQqi8WV7YG7v87_s007qV5Y}/sendMessage`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      chat_id: 1332855204,
-      text
-    })
-  });
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${AAGzyVXdxov0nQqi8WV7YG7v87_s007qV5Y}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: 1332855204,
+        text
+      })
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  console.log("Telegram API response:", data);
+    console.log("Telegram API response:", data);
 
-  return data;
-   
-} catch (err) {
+    return data;
+
+  } catch (err) {
     console.error("Telegram fetch error:", err);
     return null;
   }
