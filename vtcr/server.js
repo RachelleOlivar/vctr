@@ -30,31 +30,27 @@ let totalVisits = 0;
 ========================= */
 async function sendTelegram(text) {
   try {
-    const res = await fetch(
-      `https://api.telegram.org/bot${AAGzyVXdxov0nQqi8WV7YG7v87_s007qV5Y}/sendMessage`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: 1332855204,
-          text
-        })
-      }
-    );
+    const res = await fetch(`https://api.telegram.org/bot${AAGzyVXdxov0nQqi8WV7YG7v87_s007qV5Y}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: 1332855204,
+        text
+      })
+    });
 
     const data = await res.json();
 
-    console.log("🔵 STATUS:", res.status);
-    console.log("🔵 RESPONSE:", JSON.stringify(data, null, 2));
+    console.log("Telegram response:", data);
 
     return data;
 
   } catch (err) {
-    console.error("🔴 FETCH ERROR:", err);
-    return null;
+    console.error("Telegram error:", err);
+    return { ok: false, error: err.message };
   }
 }
-
+  
 /* =========================
    📡 VISITOR TRACKING (SILENT)
 ========================= */
