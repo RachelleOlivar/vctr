@@ -57,8 +57,8 @@ app.get("/visit", async (req, res) => {
       from: '"Visitor Tracker" <rachelle.olivar01@gmail.com>',
       to: "rachelle.olivar01@gmail.com",
       subject: isNewVisitor
-        ? "🆕 New Visitor Detected"
-        : `🔁 Returning Visitor (#${visitCount})`,
+        ? "New Visitor Detected"
+        : `Someone Visited Again!`,
       text: `
 Visitor Report
 
