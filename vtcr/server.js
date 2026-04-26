@@ -30,11 +30,11 @@ let totalVisits = 0;
 ========================= */
 async function sendTelegram(text) {
   try {
-    await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+    await fetch(`https://api.telegram.org/bot${8685244748:AAGzyVXdxov0nQqi8WV7YG7v87_s007qV5Y}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        chat_id: TELEGRAM_CHAT_ID,
+        chat_id: 1332855204,
         text
       })
     });
