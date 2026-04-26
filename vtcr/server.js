@@ -30,26 +30,27 @@ let totalVisits = 0;
 ========================= */
 async function sendTelegram(text) {
   try {
-    const url = `https://api.telegram.org/bot${AAGzyVXdxov0nQqi8WV7YG7v87_s007qV5Y}/sendMessage`;
-
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: 1332855204,
-        text
-      })
-    });
+    const res = await fetch(
+      `https://api.telegram.org/bot${AAGzyVXdxov0nQqi8WV7YG7v87_s007qV5Y}/sendMessage`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: 1332855204,
+          text
+        })
+      }
+    );
 
     const data = await res.json();
 
-    console.log("🔵 TELEGRAM RESPONSE STATUS:", res.status);
-    console.log("🔵 TELEGRAM RESPONSE BODY:", data);
+    console.log("🔵 STATUS:", res.status);
+    console.log("🔵 RESPONSE:", JSON.stringify(data, null, 2));
 
     return data;
 
   } catch (err) {
-    console.error("🔴 TELEGRAM FETCH ERROR:", err);
+    console.error("🔴 FETCH ERROR:", err);
     return null;
   }
 }
@@ -142,9 +143,4 @@ app.get("/test", async (req, res) => {
   res.json(result);
 });
 
-/* =========================
-   START SERVER
-========================= */
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+
